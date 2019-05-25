@@ -1,13 +1,12 @@
 {
   "name": "buzzwords",
   "version": "1.0.0",
-  "description": "",
-  "main": "getToken.js",
+  "description": "Check out what words were used the most in Product Hunt product descriptions at any given day",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "George Bougakov",
+  "license": "MIT",
   "dependencies": {
     "got": "^9.6.0"
   }

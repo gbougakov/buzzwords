@@ -1,0 +1,14 @@
+{
+  "name": "buzzwords",
+  "version": "1.0.0",
+  "description": "",
+  "main": "getToken.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "got": "^9.6.0"
+  }
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Buzzwords</title>
+  <!-- UIkit CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.5/css/uikit.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+  <!-- UIkit JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.5/js/uikit.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.5/js/uikit-icons.min.js"></script>
+  <style>
+    #canv {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #bottomPart {
+      position: fixed !important;
+      background: rgba(255, 255, 255, 0.95);
+      bottom: 0;
+      left: 0;
+      width: calc(100% - 60px);
+      padding: 30px;
+      z-index: 9999;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="canv"></div>
+    <div id="bottomPart" class="uk-box-shadow-small">
+      <div class="uk-flex uk-flex-middle uk-grid-small" uk-grid>
+        <div class="uk-width-1-1 uk-width-1-3@m">
+          <input type="text" class="uk-input" v-model="date" id="pick" placeholder="Pick a date">
+        </div>
+        <div class="uk-width-expand">
+          <p class="uk-text-meta uk-text-left uk-text-right@m">Made by <a href="https://bygeorgenet.me/"
+              class="uk-text-primary">George Bougakov</a> using <a href="https://producthunt.com"
+              class="uk-text-primary">Product Hunt API</a>. Check out the source code on <a href="https://github.com/gbougakov/buzzwords" class="uk-text-primary">GitHub</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.0/src/wordcloud2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        date: '',
+        token: ''
+      },
+      async mounted() {
+        flatpickr(document.getElementById('pick'), {
+          defaultDate: new Date(),
+          maxDate: new Date()
+        })
+        this.token = (await fetch('/getToken.js').then(res => res.json())).access_token
+        const date = new Date()
+        date.setHours(0, 0, 0)
+
+        this.recloud(date)
+      },
+      methods: {
+        async recloud(date) {
+          const results = await fetch(
+            'https://api.producthunt.com/v2/api/graphql?access_token=' + this.token, {
+              method: 'POST',
+              mode: 'cors',
+              cache: 'no-cache',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              referrer: 'no-referrer',
+              body: JSON.stringify({
+                query: `{
+  posts(postedAfter:"${moment(date).toISOString()}", postedBefore:"${moment(date).add(1, 'd').toISOString()}", featured: true) {
+    totalCount
+    pageInfo {
+      endCursor
+    }
+    edges {
+      node {
+        description
+      }
+    }
+  }
+}`
+              }), // body data type must match "Content-Type" header
+            }).then(res => res.json())
+          const words = results.data.posts.edges.map(o => o.node.description).join(' ').toLowerCase().replace(
+            /[.,\/#!$%\^&\*;:{}=\-_`~()\?"]/g, "").split(" ").filter(o => !Boolean(o.match(
+            /^(is|a|i|an|(\d*)|it|its|by|the|in|your|you|of|that|for|we|to|and|with|are|be)$/g)))
+          console.log(words)
+
+          const wordCount = {}
+
+          for (const word of words) {
+            if (wordCount[word]) {
+              wordCount[word]++
+            } else {
+              wordCount[word] = 1
+            }
+          }
+
+          console.log(wordCount)
+
+          const reword = Object.keys(wordCount).map(word => {
+            return [word, wordCount[word] * 25]
+          })
+
+          WordCloud(document.getElementById('canv'), {
+            list: reword,
+            rotationSteps: 2,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
+          })
+        }
+      },
+      watch: {
+        date(val) {
+          this.recloud(val)
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>

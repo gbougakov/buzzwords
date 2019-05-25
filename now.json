@@ -1,0 +1,12 @@
+{
+  "name": "buzzwords",
+  "version": 2,
+  "builds": [
+    { "src": "getToken.js", "use": "@now/node" },
+    { "src": "index.html", "use": "@now/static" }
+  ],
+  "env": {
+    "CLIENT_ID": "@client-id",
+    "CLIENT_SECRET": "@client-secret"
+  }
+}

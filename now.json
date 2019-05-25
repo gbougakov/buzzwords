@@ -6,7 +6,7 @@
     { "src": "index.html", "use": "@now/static" }
   ],
   "env": {
-    "CLIENT_ID": "@client-id",
-    "CLIENT_SECRET": "@client-secret"
+    "CLIENT_ID": "@ph-client-id",
+    "CLIENT_SECRET": "@ph-client-secret"
   }
 }
